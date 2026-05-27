@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
       imageAlt: imageAlt?.trim() || null,
       isPublished: !!isPublished,
       publishedAt: isPublished ? new Date() : null,
-      createdBy: session.id,
+      createdBy: session.userId,
     },
   });
 

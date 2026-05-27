@@ -12,6 +12,8 @@ export async function POST(request: NextRequest) {
 
     const user = await prisma.adminUser.findUnique({ where: { email } });
     if (!user || !user.isActive || !verifyPassword(password, user.passwordHash)) {
+      const failAudit = buildAuditEntry(request, "ADMIN_LOGIN_FAILED", { metadata: { email } });
+      await prisma.auditLog.create({ data: { ...failAudit } as never }).catch(() => {});
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 

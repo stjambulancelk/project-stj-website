@@ -74,7 +74,7 @@ export async function POST(
         entityType: "Invoice",
         entityId: payment.invoiceId,
         invoiceId: payment.invoiceId,
-        actorId: session.id,
+        actorId: session.userId,
         hashedIp: request.headers.get("x-hashed-ip") ?? "admin",
         userAgentHash: "admin",
         metadata: { paymentId, payherePaymentId, reason },

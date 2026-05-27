@@ -33,40 +33,56 @@ export async function POST(request: NextRequest) {
     });
     if (!invoice) return new NextResponse("Not found", { status: 404 });
 
-    // Create payment record
-    await prisma.payment.create({
-      data: {
-        invoiceId: orderId,
-        payhereOrderId: orderId,
-        payherePaymentId: payherePaymentId || undefined,
-        amount: parseFloat(payHereAmount),
-        currency: payHereCurrency,
-        method: get("method"),
-        statusCode,
-        statusMessage: get("status_message"),
-        status: isSuccess ? "SUCCESS" : isFailed ? "FAILED" : "PENDING",
-        completedAt: isSuccess ? new Date() : null,
-      },
-    }).catch(() => {}); // ignore duplicate on retry
+    // Idempotency: check if this payment_id was already processed
+    const idempotencyKey = payherePaymentId ?? orderId;
+    const existing = await prisma.payment.findFirst({
+      where: payherePaymentId
+        ? { payherePaymentId }
+        : { payhereOrderId: orderId, status: { in: ["SUCCESS", "FAILED"] } },
+    });
 
-    // Update invoice status
-    if (isSuccess) {
-      await prisma.invoice.update({
-        where: { id: orderId },
-        data: { status: "PAID", paidAt: new Date() },
+    if (existing) {
+      // Already processed — return 200 so PayHere stops retrying
+      return new NextResponse("OK", { status: 200 });
+    }
+
+    const paymentStatus = isSuccess ? "SUCCESS" : isFailed ? "FAILED" : "PENDING";
+
+    // Persist payment + invoice status atomically
+    await prisma.$transaction(async (tx) => {
+      await tx.payment.create({
+        data: {
+          invoiceId: orderId,
+          payhereOrderId: orderId,
+          payherePaymentId: payherePaymentId || undefined,
+          amount: parseFloat(payHereAmount),
+          currency: payHereCurrency,
+          method: get("method"),
+          statusCode,
+          statusMessage: get("status_message"),
+          status: paymentStatus,
+          completedAt: isSuccess ? new Date() : null,
+        },
       });
 
-      // Send confirmation email
-      if (invoice.customer.email) {
-        await sendPaymentConfirmationEmail({
-          to: invoice.customer.email,
-          customerName: invoice.customer.name,
-          invoiceId: orderId,
-          amount: parseFloat(payHereAmount),
-        }).catch(() => {});
+      if (isSuccess) {
+        await tx.invoice.update({
+          where: { id: orderId },
+          data: { status: "PAID", paidAt: new Date() },
+        });
+      } else if (isFailed) {
+        await tx.invoice.update({ where: { id: orderId }, data: { status: "FAILED" } });
       }
-    } else if (isFailed) {
-      await prisma.invoice.update({ where: { id: orderId }, data: { status: "FAILED" } });
+    });
+
+    // Send confirmation email (outside transaction — non-critical)
+    if (isSuccess && invoice.customer.email) {
+      await sendPaymentConfirmationEmail({
+        to: invoice.customer.email,
+        customerName: invoice.customer.name,
+        invoiceId: orderId,
+        amount: parseFloat(payHereAmount),
+      }).catch(() => {});
     }
 
     // Audit log
@@ -78,7 +94,7 @@ export async function POST(request: NextRequest) {
         invoiceId: orderId,
         hashedIp: "webhook",
         userAgentHash: "payhere",
-        metadata: { statusCode, amount: payHereAmount },
+        metadata: { statusCode, amount: payHereAmount, idempotencyKey },
       } as never,
     }).catch(() => {});
 

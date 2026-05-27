@@ -1,16 +1,9 @@
-import { type ClassValue, clsx } from "clsx";
-
 // ============================================================
 // General utility functions
 // ============================================================
 
-export function cn(...inputs: ClassValue[]) {
-  return inputs
-    .flat()
-    .filter(Boolean)
-    .join(" ")
-    .replace(/\s+/g, " ")
-    .trim();
+export function cn(...inputs: (string | undefined | null | false | 0)[]) {
+  return inputs.filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
 }
 
 export function formatLKR(amount: number): string {
