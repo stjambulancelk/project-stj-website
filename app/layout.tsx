@@ -11,6 +11,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://stj.lk"
+  ),
   title: "STJ Southern Ambulance | 24/7 Emergency Service — Galle, Sri Lanka",
   description:
     "Professional ambulance and patient transport in Galle, Southern Province. 24/7 emergency response, airport transfers, event medical cover, first aid training. Call 077 282 6946.",

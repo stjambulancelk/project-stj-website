@@ -4,7 +4,6 @@ import { NextRequest, NextResponse } from "next/server";
 // All crypto uses Web Crypto API (crypto.subtle).
 
 const ADMIN_PATHS = /^\/admin(?!\/login)/;
-const AUDIT_PATHS = /^\/(invoice|contact|api)/;
 const SESSION_COOKIE = "stj_admin_session";
 
 function base64urlToBuffer(s: string): ArrayBuffer {
@@ -51,25 +50,6 @@ async function verifyToken(
   }
 }
 
-async function hashIp(ip: string): Promise<string> {
-  const date = new Date().toISOString().slice(0, 10);
-  const salt = process.env.AUDIT_DAILY_SALT ?? "dev-salt";
-  const data = new TextEncoder().encode(`${ip}:${date}:${salt}`);
-  const buf = await crypto.subtle.digest("SHA-256", data);
-  return Array.from(new Uint8Array(buf))
-    .map(b => b.toString(16).padStart(2, "0"))
-    .join("")
-    .slice(0, 16);
-}
-
-function getIp(request: NextRequest): string {
-  return (
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    request.headers.get("x-real-ip") ??
-    "unknown"
-  );
-}
-
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -83,22 +63,15 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
 
-    const res = NextResponse.next();
-    res.headers.set("x-admin-user-id", session.userId);
-    res.headers.set("x-admin-role", session.role);
-    return res;
-  }
-
-  if (AUDIT_PATHS.test(pathname)) {
-    const hashed = await hashIp(getIp(request));
-    const res = NextResponse.next();
-    res.headers.set("x-hashed-ip", hashed);
-    return res;
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set("x-admin-user-id", session.userId);
+    requestHeaders.set("x-admin-role", session.role);
+    return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/invoice/:path*", "/contact", "/api/:path*"],
+  matcher: ["/admin/:path*"],
 };
