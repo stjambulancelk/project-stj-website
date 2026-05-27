@@ -71,7 +71,7 @@ export default function Header() {
                 width={180}
                 height={72}
                 priority
-                className="h-11 w-auto md:h-13"
+                className="h-11 w-auto md:h-14"
               />
             </Link>
 
@@ -84,7 +84,9 @@ export default function Header() {
                   className={`text-sm font-medium transition-colors duration-200 ${
                     scrolled
                       ? "text-navy-950 dark:text-white hover:text-emerald-600 dark:hover:text-emerald-400"
-                      : "text-white hover:text-emerald-300"
+                      : darkMode
+                        ? "text-white hover:text-emerald-300"
+                        : "text-navy-950 hover:text-emerald-600"
                   }`}
                 >
                   {link.name}
@@ -101,7 +103,9 @@ export default function Header() {
                 className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
                   scrolled
                     ? "bg-surface-container dark:bg-navy-800 text-navy-950 dark:text-white"
-                    : "bg-white/10 text-white hover:bg-white/20"
+                    : darkMode
+                      ? "bg-white/10 text-white hover:bg-white/20"
+                      : "bg-navy-950/10 text-navy-950 hover:bg-navy-950/20"
                 }`}
               >
                 {darkMode ? (
@@ -143,7 +147,9 @@ export default function Header() {
               className={`lg:hidden w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
                 scrolled
                   ? "bg-surface-container dark:bg-navy-800 text-navy-950 dark:text-white"
-                  : "bg-white/10 text-white"
+                  : darkMode
+                    ? "bg-white/10 text-white"
+                    : "bg-navy-950/10 text-navy-950"
               }`}
             >
               {mobileOpen ? <HiX className="text-xl" /> : <HiMenu className="text-xl" />}

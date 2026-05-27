@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
-import MobileActionBar from "@/components/layout/MobileActionBar";
+import ConditionalPublicNav from "@/components/layout/ConditionalPublicNav";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -78,10 +76,9 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased bg-surface dark:bg-navy-950 text-on-surface transition-colors duration-300">
-        <Header />
-        <main className="min-h-screen">{children}</main>
-        <MobileActionBar />
-        <Footer />
+        <ConditionalPublicNav>
+          <main className="min-h-screen">{children}</main>
+        </ConditionalPublicNav>
       </body>
     </html>
   );
