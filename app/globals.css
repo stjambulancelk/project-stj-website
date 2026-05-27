@@ -1,0 +1,267 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   Vital Guard Design System — CSS Custom Properties
+   ============================================================ */
+:root {
+  /* Brand colors */
+  --emerald: #10b981;
+  --emerald-dark: #059669;
+  --emerald-light: #34d399;
+  --navy: #0f172a;
+  --navy-mid: #1e293b;
+  --emergency: #ef4444;
+  --emergency-dark: #dc2626;
+
+  /* Surfaces (light mode) */
+  --surface: #f8f9ff;
+  --surface-low: #eff4ff;
+  --surface-container: #e5eeff;
+  --on-surface: #0b1c30;
+  --on-surface-muted: #45464d;
+
+  /* Glass effects */
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --glass-blur: 12px;
+
+  /* Typography */
+  --font-body: var(--font-inter), Inter, system-ui, sans-serif;
+
+  /* Spacing */
+  --container-max: 1280px;
+  --section-pad: 5rem;
+}
+
+.dark {
+  --surface: #0f172a;
+  --surface-low: #1e293b;
+  --surface-container: #263045;
+  --on-surface: #e8f1ff;
+  --on-surface-muted: #94a3b8;
+  --glass-bg: rgba(15, 23, 42, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.08);
+}
+
+/* ============================================================
+   Base Reset & Defaults
+   ============================================================ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--surface);
+  color: var(--on-surface);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-body);
+  font-weight: 700;
+  color: var(--on-surface);
+}
+
+/* ============================================================
+   Scrollbar — Vital Guard Emerald
+   ============================================================ */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--surface-low); }
+::-webkit-scrollbar-thumb {
+  background: var(--emerald);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--emerald-dark); }
+
+/* ============================================================
+   Interactive defaults
+   ============================================================ */
+a, button { transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--emerald);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ============================================================
+   Glassmorphism utility classes
+   ============================================================ */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: 1.5rem;
+  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08), 0 1px 4px rgba(15, 23, 42, 0.04);
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+              box-shadow 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.glass-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 48px rgba(15, 23, 42, 0.16), 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+/* ============================================================
+   Tech Wave — SVG animation layer
+   ============================================================ */
+.tech-wave {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.tech-wave svg {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+}
+
+.wave-1 { animation: waveFlow 8s ease-in-out infinite; opacity: 0.5; }
+.wave-2 { animation: waveFlow 10s ease-in-out 2s infinite; opacity: 0.35; }
+.wave-3 { animation: waveFlow 13s ease-in-out 4s infinite; opacity: 0.2; }
+
+@keyframes waveFlow {
+  0%, 100% { transform: translateY(0) scaleX(1); }
+  50%       { transform: translateY(-16px) scaleX(1.04); }
+}
+
+/* ============================================================
+   Section helpers
+   ============================================================ */
+.section-pad {
+  padding-top: var(--section-pad);
+  padding-bottom: var(--section-pad);
+}
+
+.container-main {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+/* ============================================================
+   Scroll-reveal utility (JS toggles .revealed)
+   ============================================================ */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s cubic-bezier(0.2, 0.8, 0.2, 1),
+              transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ============================================================
+   Mobile bottom action bar
+   ============================================================ */
+.mobile-action-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0.75rem 1rem;
+  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+}
+
+@media (min-width: 1024px) {
+  .mobile-action-bar { display: none; }
+}
+
+/* ============================================================
+   Button primitives
+   ============================================================ */
+.btn-emergency {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--emergency);
+  color: #fff;
+  font-weight: 600;
+  padding: 0.875rem 2rem;
+  border-radius: 9999px;
+  box-shadow: 0 4px 24px rgba(239, 68, 68, 0.35);
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.btn-emergency:hover {
+  background: var(--emergency-dark);
+  box-shadow: 0 6px 32px rgba(239, 68, 68, 0.5);
+  transform: translateY(-2px);
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--emerald);
+  color: #fff;
+  font-weight: 600;
+  padding: 0.875rem 2rem;
+  border-radius: 9999px;
+  box-shadow: 0 4px 24px rgba(16, 185, 129, 0.3);
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.btn-primary:hover {
+  background: var(--emerald-dark);
+  box-shadow: 0 6px 32px rgba(16, 185, 129, 0.45);
+  transform: translateY(-2px);
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  color: var(--on-surface);
+  font-weight: 600;
+  padding: 0.875rem 2rem;
+  border-radius: 9999px;
+  border: 1.5px solid var(--glass-border);
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.btn-ghost:hover {
+  background: var(--glass-bg);
+  border-color: var(--emerald);
+  color: var(--emerald);
+}
