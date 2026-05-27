@@ -1,14 +1,65 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyToken, SESSION_COOKIE } from "@/lib/auth";
-import crypto from "crypto";
+
+// Edge Runtime — NO Node.js imports allowed here.
+// All crypto uses Web Crypto API (crypto.subtle).
 
 const ADMIN_PATHS = /^\/admin(?!\/login)/;
 const AUDIT_PATHS = /^\/(invoice|contact|api)/;
+const SESSION_COOKIE = "stj_admin_session";
 
-function hashIp(ip: string): string {
+function base64urlToBuffer(s: string): ArrayBuffer {
+  const base64 = s.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, "=");
+  const binary = atob(padded);
+  const buf = new ArrayBuffer(binary.length);
+  const view = new Uint8Array(buf);
+  for (let i = 0; i < binary.length; i++) view[i] = binary.charCodeAt(i);
+  return buf;
+}
+
+async function verifyToken(
+  token: string
+): Promise<{ userId: string; email: string; role: string } | null> {
+  try {
+    const dot = token.lastIndexOf(".");
+    if (dot === -1) return null;
+    const encoded = token.slice(0, dot);
+    const sig = token.slice(dot + 1);
+
+    const secret = process.env.NEXTAUTH_SECRET ?? "change-me-in-production";
+    const key = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(secret),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["verify"]
+    );
+
+    const valid = await crypto.subtle.verify(
+      "HMAC",
+      key,
+      base64urlToBuffer(sig),
+      new TextEncoder().encode(encoded)
+    );
+    if (!valid) return null;
+
+    const payload = JSON.parse(new TextDecoder().decode(base64urlToBuffer(encoded)));
+    if (payload.exp < Math.floor(Date.now() / 1000)) return null;
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+async function hashIp(ip: string): Promise<string> {
   const date = new Date().toISOString().slice(0, 10);
   const salt = process.env.AUDIT_DAILY_SALT ?? "dev-salt";
-  return crypto.createHash("sha256").update(ip + date + salt).digest("hex").slice(0, 16);
+  const data = new TextEncoder().encode(`${ip}:${date}:${salt}`);
+  const buf = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(buf))
+    .map(b => b.toString(16).padStart(2, "0"))
+    .join("")
+    .slice(0, 16);
 }
 
 function getIp(request: NextRequest): string {
@@ -19,13 +70,12 @@ function getIp(request: NextRequest): string {
   );
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Auth guard for /admin/* (except /admin/login)
   if (ADMIN_PATHS.test(pathname)) {
     const token = request.cookies.get(SESSION_COOKIE)?.value;
-    const session = token ? verifyToken(token) : null;
+    const session = token ? await verifyToken(token) : null;
 
     if (!session) {
       const loginUrl = new URL("/admin/login", request.url);
@@ -33,20 +83,17 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
 
-    // Pass session info as headers for use in server components if needed
-    const response = NextResponse.next();
-    response.headers.set("x-admin-user-id", session.userId);
-    response.headers.set("x-admin-role", session.role);
-    return response;
+    const res = NextResponse.next();
+    res.headers.set("x-admin-user-id", session.userId);
+    res.headers.set("x-admin-role", session.role);
+    return res;
   }
 
-  // IP logging header injection for audit-relevant paths
   if (AUDIT_PATHS.test(pathname)) {
-    const ip = getIp(request);
-    const hashedIp = hashIp(ip);
-    const response = NextResponse.next();
-    response.headers.set("x-hashed-ip", hashedIp);
-    return response;
+    const hashed = await hashIp(getIp(request));
+    const res = NextResponse.next();
+    res.headers.set("x-hashed-ip", hashed);
+    return res;
   }
 
   return NextResponse.next();
