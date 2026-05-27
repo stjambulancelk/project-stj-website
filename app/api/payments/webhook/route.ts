@@ -9,12 +9,13 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const get = (key: string) => formData.get(key)?.toString() ?? "";
 
-    const merchantId   = get("merchant_id");
-    const orderId      = get("order_id");
-    const payHereAmount = get("payhere_amount");
+    const merchantId      = get("merchant_id");
+    const orderId         = get("order_id");
+    const payherePaymentId = get("payment_id") || null;
+    const payHereAmount   = get("payhere_amount");
     const payHereCurrency = get("payhere_currency");
-    const statusCode   = get("status_code");
-    const md5sig       = get("md5sig");
+    const statusCode      = get("status_code");
+    const md5sig          = get("md5sig");
 
     // Verify signature
     const valid = verifyPayHereWebhook({ merchantId, orderId, payHereAmount, payHereCurrency, statusCode, md5sig });
@@ -37,6 +38,7 @@ export async function POST(request: NextRequest) {
       data: {
         invoiceId: orderId,
         payhereOrderId: orderId,
+        payherePaymentId: payherePaymentId || undefined,
         amount: parseFloat(payHereAmount),
         currency: payHereCurrency,
         method: get("method"),

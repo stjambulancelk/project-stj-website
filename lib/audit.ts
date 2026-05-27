@@ -19,7 +19,8 @@ export type AuditAction =
   | "CMS_CONTENT_UPDATED"
   | "FILE_UPLOADED"
   | "USER_CREATED"
-  | "USER_UPDATED";
+  | "USER_UPDATED"
+  | "PAYMENT_REFUNDED";
 
 export interface AuditEntry {
   action: AuditAction;

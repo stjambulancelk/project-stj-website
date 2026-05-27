@@ -19,11 +19,18 @@ export const SITE = {
   googleReviewCount: 28,
 } as const;
 
+const _sandbox = process.env.PAYHERE_SANDBOX === "true";
+
 export const PAYHERE = {
   merchantId: process.env.PAYHERE_MERCHANT_ID ?? "",
   merchantSecret: process.env.PAYHERE_MERCHANT_SECRET ?? "",
-  isSandbox: process.env.PAYHERE_SANDBOX === "true",
+  appId: process.env.PAYHERE_APP_ID ?? "",
+  appSecret: process.env.PAYHERE_APP_SECRET ?? "",
+  isSandbox: _sandbox,
   baseUrl: process.env.PAYHERE_BASE_URL ?? "https://sandbox.payhere.lk/pay/checkout",
+  apiBase: _sandbox
+    ? "https://sandbox.payhere.lk/merchant/v1"
+    : "https://payhere.lk/merchant/v1",
   currency: "LKR",
   notifyUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/api/payments/webhook`,
   returnUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/invoice`,
@@ -97,6 +104,7 @@ export const INVOICE_STATUS = {
   FAILED: "FAILED",
   CANCELLED: "CANCELLED",
   ON_HOLD: "ON_HOLD",
+  REFUNDED: "REFUNDED",
 } as const;
 
 export const ADMIN_ROLES = {

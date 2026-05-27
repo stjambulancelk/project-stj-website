@@ -1,11 +1,12 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { HiArrowLeft, HiExternalLink, HiClipboardCopy } from "react-icons/hi";
+import { HiArrowLeft, HiExternalLink } from "react-icons/hi";
 import prisma from "@/lib/db";
 import { formatLKR, formatDate, formatDateTime } from "@/lib/utils";
 import { SITE } from "@/lib/constants";
 import InvoiceStatusUpdater from "./InvoiceStatusUpdater";
 import CopyLinkButton from "./CopyLinkButton";
+import RefundButton from "./RefundButton";
 
 const STATUS_BADGE: Record<string, string> = {
   PAID:      "bg-emerald-900/30 text-emerald-400 border-emerald-800",
@@ -14,6 +15,7 @@ const STATUS_BADGE: Record<string, string> = {
   FAILED:    "bg-red-900/30 text-red-400 border-red-800",
   CANCELLED: "bg-slate-800 text-slate-400 border-slate-700",
   ON_HOLD:   "bg-purple-900/30 text-purple-400 border-purple-800",
+  REFUNDED:  "bg-orange-900/30 text-orange-400 border-orange-800",
 };
 
 async function getInvoice(id: string) {
@@ -35,6 +37,7 @@ export default async function AdminInvoiceDetailPage({ params }: { params: Promi
 
   const total = Number(invoice.totalAmount);
   const invoiceUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? SITE.url}/invoice/${invoice.id}`;
+  const successPayment = invoice.payments.find(p => p.status === "SUCCESS");
 
   return (
     <div className="p-6 max-w-3xl space-y-5">
@@ -63,6 +66,13 @@ export default async function AdminInvoiceDetailPage({ params }: { params: Promi
           <HiExternalLink /> Preview
         </Link>
         <InvoiceStatusUpdater invoiceId={invoice.id} currentStatus={invoice.status} />
+        {invoice.status === "PAID" && successPayment && (
+          <RefundButton
+            paymentId={successPayment.id}
+            invoiceId={invoice.id}
+            amount={formatLKR(Number(successPayment.amount))}
+          />
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">

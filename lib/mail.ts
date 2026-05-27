@@ -109,6 +109,33 @@ export async function sendPaymentConfirmationEmail(params: {
   });
 }
 
+export async function sendRefundEmail(params: {
+  to: string;
+  customerName: string;
+  invoiceId: string;
+  amount: number;
+  reason: string;
+}): Promise<void> {
+  const { to, customerName, invoiceId, amount, reason } = params;
+  await sendMail({
+    to,
+    subject: `Refund Processed — ${invoiceId}`,
+    html: `
+      <div style="font-family:Inter,sans-serif;max-width:600px;margin:0 auto;background:#f8f9ff;padding:32px;border-radius:16px;">
+        <div style="background:#0f172a;padding:24px;border-radius:12px;text-align:center;margin-bottom:24px;">
+          <h1 style="color:#10b981;margin:0;">Refund Processed</h1>
+        </div>
+        <h2 style="color:#0b1c30;">Dear ${customerName},</h2>
+        <p style="color:#45464d;">A refund of <strong>${formatLKR(amount)}</strong> for invoice <strong>${invoiceId}</strong> has been processed.</p>
+        <p style="color:#45464d;">Reason: ${reason}</p>
+        <p style="color:#76777d;font-size:13px;">Refunds typically appear in your account within 5–7 business days depending on your bank or card issuer.</p>
+        <p style="color:#76777d;font-size:13px;">Questions? Call <a href="tel:+94772826946" style="color:#10b981;">077 282 6946</a> or email <a href="mailto:info@stj.lk" style="color:#10b981;">info@stj.lk</a></p>
+        <p style="color:#c6c6cd;font-size:11px;text-align:center;margin-top:24px;">${SITE.address}</p>
+      </div>
+    `,
+  });
+}
+
 export async function sendContactFormEmail(params: {
   name: string;
   email: string;

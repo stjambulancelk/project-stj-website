@@ -76,6 +76,7 @@ enum InvoiceStatus {
   FAILED
   CANCELLED
   ON_HOLD
+  REFUNDED
 }
 
 // ============================================================
@@ -87,6 +88,7 @@ model Payment {
   invoice         Invoice       @relation(fields: [invoiceId], references: [id])
 
   payhereOrderId  String?       @unique
+  payherePaymentId String?      @unique
   amount          Decimal       @db.Decimal(10, 2)
   currency        String        @default("LKR")
   method          String?       // VISA, MASTER, EZCASH etc.
