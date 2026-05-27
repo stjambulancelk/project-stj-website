@@ -41,8 +41,8 @@ async function main() {
     }
   }
 
-  const email = process.env.SEED_EMAIL ?? await prompt("Admin email [admin@stj.lk]: ") || "admin@stj.lk";
-  const name  = process.env.SEED_NAME  ?? await prompt("Display name [Admin]: ") || "Admin";
+  const email = process.env.SEED_EMAIL ?? (await prompt("Admin email [admin@stj.lk]: ") || "admin@stj.lk");
+  const name  = process.env.SEED_NAME  ?? (await prompt("Display name [Admin]: ") || "Admin");
 
   let password = process.env.SEED_PASSWORD ?? "";
   while (password.length < 8) {
