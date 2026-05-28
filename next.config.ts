@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+const isDev = process.env.NODE_ENV !== "production";
+
 const securityHeaders = [
   { key: "X-DNS-Prefetch-Control",   value: "on" },
   { key: "X-Content-Type-Options",   value: "nosniff" },
@@ -12,10 +14,12 @@ const securityHeaders = [
   },
   {
     key: "Content-Security-Policy",
-    // PayHere sandbox + live domains needed for form POST and iframe
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline'",   // unsafe-inline needed for dark-mode bootstrap script
+      // dev: unsafe-eval needed for Next.js HMR/source maps; prod: omit it
+      isDev
+        ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+        : "script-src 'self' 'unsafe-inline'",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob: https://maps.googleapis.com https://maps.gstatic.com",

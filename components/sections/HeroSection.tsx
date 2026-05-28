@@ -128,8 +128,11 @@ export default function HeroSection() {
                 <FaWhatsapp className="text-lg" />
                 WhatsApp Us
               </a>
-              <Link href="/services" className="btn-ghost text-white border-white/30 hover:border-emerald-400 hover:text-emerald-300">
-                Our Services
+              <Link
+                href="/services"
+                className="flex items-center gap-2 bg-white/15 hover:bg-white/25 border border-white/50 hover:border-white text-white font-semibold px-6 py-3.5 rounded-full transition-all hover:-translate-y-0.5 backdrop-blur-sm shadow-lg"
+              >
+                Our Services →
               </Link>
             </div>
           </div>

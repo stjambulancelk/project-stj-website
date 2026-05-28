@@ -66,12 +66,12 @@ export default function Header() {
             {/* Logo */}
             <Link href="/" className="flex-shrink-0" onClick={() => setMobileOpen(false)}>
               <Image
-                src="/logo-nav.png"
+                src={scrolled ? "/logo-nav-with-bg.png" : "/logo-transparent.png"}
                 alt="STJ Southern Ambulance"
                 width={180}
                 height={72}
                 priority
-                className="h-11 w-auto md:h-14"
+                className={scrolled ? "h-11 w-auto md:h-14" : "h-12 w-auto md:h-14"}
               />
             </Link>
 
@@ -84,9 +84,7 @@ export default function Header() {
                   className={`text-sm font-medium transition-colors duration-200 ${
                     scrolled
                       ? "text-navy-950 dark:text-white hover:text-emerald-600 dark:hover:text-emerald-400"
-                      : darkMode
-                        ? "text-white hover:text-emerald-300"
-                        : "text-navy-950 hover:text-emerald-600"
+                      : "text-white hover:text-emerald-300"
                   }`}
                 >
                   {link.name}
@@ -103,9 +101,7 @@ export default function Header() {
                 className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
                   scrolled
                     ? "bg-surface-container dark:bg-navy-800 text-navy-950 dark:text-white"
-                    : darkMode
-                      ? "bg-white/10 text-white hover:bg-white/20"
-                      : "bg-navy-950/10 text-navy-950 hover:bg-navy-950/20"
+                    : "bg-white/10 text-white hover:bg-white/20"
                 }`}
               >
                 {darkMode ? (
@@ -147,9 +143,7 @@ export default function Header() {
               className={`lg:hidden w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
                 scrolled
                   ? "bg-surface-container dark:bg-navy-800 text-navy-950 dark:text-white"
-                  : darkMode
-                    ? "bg-white/10 text-white"
-                    : "bg-navy-950/10 text-navy-950"
+                  : "bg-white/10 text-white"
               }`}
             >
               {mobileOpen ? <HiX className="text-xl" /> : <HiMenu className="text-xl" />}
