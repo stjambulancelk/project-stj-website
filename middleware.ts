@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 // All crypto uses Web Crypto API (crypto.subtle).
 
 const ADMIN_PATHS = /^\/admin(?!\/login)/;
-const SESSION_COOKIE = "stj_admin_session";
+const SESSION_COOKIE = "stj_session";
 
 function base64urlToBuffer(s: string): ArrayBuffer {
   const base64 = s.replace(/-/g, "+").replace(/_/g, "/");

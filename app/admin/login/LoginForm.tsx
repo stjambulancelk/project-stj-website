@@ -6,7 +6,7 @@ import { HiEye, HiEyeOff } from "react-icons/hi";
 import { SITE } from "@/lib/constants";
 import { loginAction } from "./actions";
 
-const SESSION_COOKIE = "stj_admin_session";
+const SESSION_COOKIE = "stj_session";
 const SESSION_MAX_AGE = 8 * 60 * 60;
 
 export default function LoginForm() {

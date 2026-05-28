@@ -35,7 +35,7 @@ export default function AdminSidebar({ user }: Props) {
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
     // Railway strips Set-Cookie — clear cookie from client side too.
-    document.cookie = "stj_admin_session=; Path=/; Max-Age=0; SameSite=Lax";
+    document.cookie = "stj_session=; Path=/; Max-Age=0; SameSite=Lax";
     window.location.href = "/admin/login";
   }
 

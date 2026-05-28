@@ -47,5 +47,5 @@ export function verifyPassword(plain: string, stored: string): boolean {
   return crypto.timingSafeEqual(Buffer.from(hash, "hex"), Buffer.from(attempt, "hex"));
 }
 
-export const SESSION_COOKIE = "stj_admin_session";
+export const SESSION_COOKIE = "stj_session";
 export const SESSION_MAX_AGE = 8 * 60 * 60; // 8h in seconds
