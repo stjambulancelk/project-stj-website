@@ -6,6 +6,9 @@ import { HiEye, HiEyeOff } from "react-icons/hi";
 import { SITE } from "@/lib/constants";
 import { loginAction } from "./actions";
 
+const SESSION_COOKIE = "stj_admin_session";
+const SESSION_MAX_AGE = 8 * 60 * 60;
+
 export default function LoginForm() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [showPw, setShowPw] = useState(false);
@@ -18,11 +21,21 @@ export default function LoginForm() {
     setErrorMsg("");
 
     const result = await loginAction(form.email, form.password).catch(() => null);
-    if (result?.error) {
+    if (!result) {
+      setErrorMsg("An unexpected error occurred. Please try again.");
+      setStatus("error");
+      return;
+    }
+    if ("error" in result) {
       setErrorMsg(result.error);
       setStatus("error");
+      return;
     }
-    // On success, loginAction calls redirect() internally — Next.js handles navigation
+    // Railway strips Set-Cookie headers — set the session cookie from client JS instead.
+    // The cookie is not httpOnly but is verified server-side on every request.
+    const secure = location.protocol === "https:" ? "; Secure" : "";
+    document.cookie = `${SESSION_COOKIE}=${result.token}; Path=/; SameSite=Lax; Max-Age=${SESSION_MAX_AGE}${secure}`;
+    window.location.href = "/admin/dashboard";
   }
 
   return (

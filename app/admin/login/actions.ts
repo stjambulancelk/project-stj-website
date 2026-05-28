@@ -1,14 +1,12 @@
 "use server";
 
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import prisma from "@/lib/db";
-import { verifyPassword, signToken, SESSION_COOKIE, SESSION_MAX_AGE } from "@/lib/auth";
+import { verifyPassword, signToken } from "@/lib/auth";
 
 export async function loginAction(
   email: string,
   password: string
-): Promise<{ error: string }> {
+): Promise<{ error: string } | { token: string }> {
   if (!email || !password) {
     return { error: "Email and password required" };
   }
@@ -54,14 +52,7 @@ export async function loginAction(
     role: user.role,
   });
 
-  const cookieStore = await cookies();
-  cookieStore.set(SESSION_COOKIE, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: SESSION_MAX_AGE,
-    path: "/",
-  });
-
-  redirect("/admin/dashboard");
+  // Railway's edge proxy strips Set-Cookie from HTTP response headers.
+  // Return the token to the client; LoginForm.tsx sets it via document.cookie.
+  return { token };
 }
