@@ -37,7 +37,8 @@ export function generateInvoiceId(): string {
   const date = new Date();
   const yy = String(date.getFullYear()).slice(-2);
   const mm = String(date.getMonth() + 1).padStart(2, "0");
-  const rand = Math.floor(1000 + Math.random() * 9000);
+  // 8 random hex chars = 4 billion combos — not enumerable
+  const rand = Math.floor(Math.random() * 0xffffffff).toString(16).padStart(8, "0");
   return `STJ${yy}${mm}-${rand}`;
 }
 
