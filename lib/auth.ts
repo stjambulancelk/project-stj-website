@@ -8,6 +8,7 @@ const SECRET = process.env.NEXTAUTH_SECRET ?? "change-me-in-production";
 export interface AdminSession {
   userId: string;
   email: string;
+  name: string;
   role: string;
   exp: number;
 }

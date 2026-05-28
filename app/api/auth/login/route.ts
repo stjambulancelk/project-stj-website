@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     const audit = buildAuditEntry(request, "ADMIN_LOGIN", { actorId: user.id });
     await prisma.auditLog.create({ data: { ...audit } as never }).catch(() => {});
 
-    const token = signToken({ userId: user.id, email: user.email, role: user.role });
+    const token = signToken({ userId: user.id, email: user.email, name: user.name, role: user.role });
 
     const response = NextResponse.json({ ok: true });
     response.cookies.set(SESSION_COOKIE, token, {

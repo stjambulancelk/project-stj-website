@@ -31,14 +31,18 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Brand column */}
           <div className="lg:col-span-1">
-            <Link href="/">
+            <Link href="/" className="flex items-center gap-2.5 mb-4">
               <Image
-                src="/logo-nav.png"
-                alt="STJ Southern Ambulance"
-                width={160}
-                height={64}
-                className="h-12 w-auto mb-4 brightness-0 invert"
+                src="/logo-transparent.png"
+                alt=""
+                width={44}
+                height={44}
+                className="h-11 w-11 flex-shrink-0"
               />
+              <div className="flex flex-col leading-none text-white">
+                <span className="font-black text-[15px] tracking-wider">STJ</span>
+                <span className="text-[9px] font-semibold tracking-[0.15em] uppercase opacity-80">Southern Ambulance</span>
+              </div>
             </Link>
             <p className="text-slate-400 text-sm leading-relaxed mb-6">
               Southern Sri Lanka&rsquo;s trusted private ambulance service. Professional care, swift response — available 24/7.

@@ -15,7 +15,7 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
   return (
     <div className="dark">
       <div className="min-h-screen bg-navy-950 text-slate-200 flex">
-        <AdminSidebar user={{ email: session.email, role: session.role }} />
+        <AdminSidebar user={{ email: session.email, name: session.name, role: session.role }} />
         <main className="flex-1 overflow-auto pt-14 lg:pt-0">
           {children}
         </main>

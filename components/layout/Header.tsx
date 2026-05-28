@@ -64,24 +64,28 @@ export default function Header() {
         <div className="container-main">
           <div className="flex items-center justify-between gap-4">
             {/* Logo */}
-            <Link href="/" className="flex-shrink-0" onClick={() => setMobileOpen(false)}>
+            <Link href="/" className="flex-shrink-0 flex items-center gap-2.5" onClick={() => setMobileOpen(false)}>
               <Image
-                src={scrolled ? "/logo-nav-with-bg.png" : "/logo-transparent.png"}
-                alt="STJ Southern Ambulance"
-                width={180}
-                height={72}
+                src="/logo-transparent.png"
+                alt=""
+                width={44}
+                height={44}
                 priority
-                className={scrolled ? "h-11 w-auto md:h-14" : "h-12 w-auto md:h-14"}
+                className="h-10 w-10 md:h-11 md:w-11 flex-shrink-0"
               />
+              <div className={`hidden sm:flex flex-col leading-none ${scrolled ? "text-navy-950 dark:text-white" : "text-white"}`}>
+                <span className="font-black text-[15px] tracking-wider">STJ</span>
+                <span className="text-[9px] font-semibold tracking-[0.15em] uppercase opacity-80">Southern Ambulance</span>
+              </div>
             </Link>
 
             {/* Desktop Nav */}
-            <nav className="hidden lg:flex items-center gap-6 xl:gap-8">
+            <nav className="hidden lg:flex items-center gap-4 xl:gap-6">
               {NAV_LINKS.map((link) => (
                 <Link
                   key={link.name}
                   href={link.href}
-                  className={`text-sm font-medium transition-colors duration-200 ${
+                  className={`text-sm font-medium whitespace-nowrap transition-colors duration-200 ${
                     scrolled
                       ? "text-navy-950 dark:text-white hover:text-emerald-600 dark:hover:text-emerald-400"
                       : "text-white hover:text-emerald-300"

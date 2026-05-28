@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { HiEye, HiEyeOff } from "react-icons/hi";
-import { FaAmbulance } from "react-icons/fa";
 import { SITE } from "@/lib/constants";
 
 export default function AdminLoginPage() {
@@ -44,8 +44,14 @@ export default function AdminLoginPage() {
 
         {/* Brand */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-emerald-500/10 mb-4">
-            <FaAmbulance className="text-2xl text-emerald-400" />
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <Image
+              src="/logo-transparent.png"
+              alt="STJ"
+              width={56}
+              height={56}
+              className="w-14 h-14"
+            />
           </div>
           <h1 className="text-headline-sm text-white font-bold">{SITE.name}</h1>
           <p className="text-slate-400 text-xs mt-1">Admin Portal</p>

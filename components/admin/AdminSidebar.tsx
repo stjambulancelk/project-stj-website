@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import {
@@ -24,7 +25,7 @@ const NAV = [
 ];
 
 interface Props {
-  user: { email: string; role: string };
+  user: { email: string; name: string; role: string };
 }
 
 export default function AdminSidebar({ user }: Props) {
@@ -43,9 +44,13 @@ export default function AdminSidebar({ user }: Props) {
       {/* Logo */}
       <div className="p-5 border-b border-navy-800">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
-            <FaAmbulance className="text-lg text-emerald-400" />
-          </div>
+          <Image
+            src="/logo-transparent.png"
+            alt="STJ"
+            width={36}
+            height={36}
+            className="w-9 h-9 flex-shrink-0"
+          />
           <div>
             <p className="text-white text-xs font-bold leading-tight">{SITE.name}</p>
             <p className="text-emerald-400 text-[10px]">Admin Portal</p>
@@ -77,9 +82,16 @@ export default function AdminSidebar({ user }: Props) {
 
       {/* User + logout */}
       <div className="p-3 border-t border-navy-800">
-        <div className="px-3 py-2 mb-1">
-          <p className="text-white text-xs font-medium truncate">{user.email}</p>
-          <p className="text-slate-500 text-[10px] capitalize">{user.role.replace("_", " ").toLowerCase()}</p>
+        <div className="flex items-center gap-3 px-3 py-2 mb-1">
+          <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0">
+            <span className="text-white text-xs font-bold">
+              {(user.name ?? user.email).split(" ").map((w: string) => w[0]).slice(0, 2).join("").toUpperCase()}
+            </span>
+          </div>
+          <div className="min-w-0">
+            <p className="text-white text-xs font-medium truncate">{user.name ?? user.email}</p>
+            <p className="text-slate-500 text-[10px] capitalize">{user.role.replace("_", " ").toLowerCase()}</p>
+          </div>
         </div>
         <button
           onClick={handleLogout}
