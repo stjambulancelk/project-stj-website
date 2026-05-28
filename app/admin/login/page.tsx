@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { HiEye, HiEyeOff } from "react-icons/hi";
 import { SITE } from "@/lib/constants";
+import { loginAction } from "./actions";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -19,17 +20,11 @@ export default function AdminLoginPage() {
     setErrorMsg("");
 
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-
-      if (res.ok) {
+      const result = await loginAction(form.email, form.password);
+      if (result.ok) {
         router.push("/admin/dashboard");
       } else {
-        const data = await res.json().catch(() => ({}));
-        setErrorMsg(data.error ?? "Invalid credentials");
+        setErrorMsg(result.error ?? "Invalid credentials");
         setStatus("error");
       }
     } catch {
