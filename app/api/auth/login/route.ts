@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import prisma from "@/lib/db";
 import { verifyPassword, signToken, SESSION_COOKIE, SESSION_MAX_AGE } from "@/lib/auth";
 import { buildAuditEntry } from "@/lib/audit";
@@ -26,15 +27,15 @@ export async function POST(request: NextRequest) {
 
     const token = signToken({ userId: user.id, email: user.email, name: user.name, role: user.role });
 
-    const response = NextResponse.json({ ok: true });
-    response.cookies.set(SESSION_COOKIE, token, {
+    const cookieStore = await cookies();
+    cookieStore.set(SESSION_COOKIE, token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: SESSION_MAX_AGE,
       path: "/",
     });
-    return response;
+    return NextResponse.json({ ok: true });
   } catch {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
