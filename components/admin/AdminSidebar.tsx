@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
   HiHome, HiDocumentText, HiUsers, HiPencil, HiChartBar,
@@ -30,13 +30,13 @@ interface Props {
 
 export default function AdminSidebar({ user }: Props) {
   const pathname = usePathname();
-  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/admin/login");
-    router.refresh();
+    // Railway strips Set-Cookie — clear cookie from client side too.
+    document.cookie = "stj_admin_session=; Path=/; Max-Age=0; SameSite=Lax";
+    window.location.href = "/admin/login";
   }
 
   const SidebarContent = () => (

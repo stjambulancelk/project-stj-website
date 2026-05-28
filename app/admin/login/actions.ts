@@ -1,7 +1,7 @@
 "use server";
 
 import prisma from "@/lib/db";
-import { verifyPassword, signToken } from "@/lib/auth";
+import { verifyPassword, signToken, SESSION_MAX_AGE } from "@/lib/auth";
 
 export async function loginAction(
   email: string,
@@ -32,6 +32,14 @@ export async function loginAction(
     data: { lastLoginAt: new Date() },
   });
 
+  // Create a server-side session record — allows remote revocation.
+  const session = await prisma.adminSession.create({
+    data: {
+      adminId: user.id,
+      expiresAt: new Date(Date.now() + SESSION_MAX_AGE * 1000),
+    },
+  });
+
   await prisma.auditLog
     .create({
       data: {
@@ -45,14 +53,17 @@ export async function loginAction(
     })
     .catch(() => {});
 
+  // JWT payload includes sessionId — middleware verifies signature (Edge),
+  // layout verifies session exists in DB (Node.js, catches revocations).
   const token = signToken({
+    sessionId: session.id,
     userId: user.id,
     email: user.email,
     name: user.name,
     role: user.role,
   });
 
-  // Railway's edge proxy strips Set-Cookie from HTTP response headers.
-  // Return the token to the client; LoginForm.tsx sets it via document.cookie.
+  // Railway strips Set-Cookie from all HTTP responses.
+  // Return token to client; LoginForm sets it via document.cookie.
   return { token };
 }

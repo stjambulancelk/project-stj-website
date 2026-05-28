@@ -6,6 +6,7 @@ import crypto from "crypto";
 const SECRET = process.env.NEXTAUTH_SECRET ?? "change-me-in-production";
 
 export interface AdminSession {
+  sessionId: string;
   userId: string;
   email: string;
   name: string;

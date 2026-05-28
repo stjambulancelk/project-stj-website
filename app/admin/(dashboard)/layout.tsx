@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { verifyToken, SESSION_COOKIE } from "@/lib/auth";
+import prisma from "@/lib/db";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 
 export default async function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
@@ -9,6 +10,18 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
   const session = token ? verifyToken(token) : null;
 
   if (!session) {
+    redirect("/admin/login");
+  }
+
+  // Verify the session still exists in DB — catches remotely revoked sessions.
+  const dbSession = await prisma.adminSession.findUnique({
+    where: { id: session.sessionId },
+  });
+
+  if (!dbSession || dbSession.expiresAt < new Date()) {
+    if (dbSession) {
+      await prisma.adminSession.delete({ where: { id: session.sessionId } }).catch(() => {});
+    }
     redirect("/admin/login");
   }
 

@@ -114,17 +114,31 @@ enum PaymentStatus {
 // Admin users
 // ============================================================
 model AdminUser {
-  id           String     @id @default(cuid())
-  email        String     @unique
+  id           String         @id @default(cuid())
+  email        String         @unique
   passwordHash String
   name         String
-  role         AdminRole  @default(DISPATCHER)
-  isActive     Boolean    @default(true)
+  role         AdminRole      @default(DISPATCHER)
+  isActive     Boolean        @default(true)
   lastLoginAt  DateTime?
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
 
+  sessions     AdminSession[]
   auditLogs    AuditLog[]
+}
+
+// Server-side sessions — opaque session ID in cookie, actual data here.
+// Middleware verifies JWT signature; layout verifies this record exists.
+model AdminSession {
+  id        String    @id @default(cuid())
+  adminId   String
+  admin     AdminUser @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+
+  @@index([adminId])
+  @@index([expiresAt])
 }
 
 enum AdminRole {
