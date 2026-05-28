@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect, useCallback } from "react";
+import { usePathname } from "next/navigation";
 import { HiMenu, HiX, HiPhone } from "react-icons/hi";
 import { FaWhatsapp } from "react-icons/fa";
 import { SITE } from "@/lib/constants";
@@ -17,8 +18,18 @@ const NAV_LINKS = [
   { name: "Contact", href: "/contact" },
 ];
 
+// Pages with a full-width dark hero — header starts transparent
+const DARK_HERO_PREFIXES = ["/about", "/services", "/fleet", "/news", "/contact"];
+
+function pageHasDarkHero(pathname: string | null) {
+  if (!pathname) return false;
+  if (pathname === "/") return true;
+  return DARK_HERO_PREFIXES.some(p => pathname.startsWith(p));
+}
+
 export default function Header() {
-  const [scrolled, setScrolled] = useState(false);
+  const pathname = usePathname();
+  const [scrolled, setScrolled] = useState(!pageHasDarkHero(pathname));
   const [mobileOpen, setMobileOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
 
@@ -40,10 +51,16 @@ export default function Header() {
   }, []);
 
   useEffect(() => {
+    // On route change, reset to glass if no dark hero, else check actual scroll position
+    if (!pageHasDarkHero(pathname)) {
+      setScrolled(true);
+      return;
+    }
+    setScrolled(window.scrollY > 40);
     const onScroll = () => setScrolled(window.scrollY > 40);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  }, [pathname]);
 
   // Close mobile menu on route change / resize
   useEffect(() => {
