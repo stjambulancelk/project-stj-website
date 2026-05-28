@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { HiArrowLeft, HiExternalLink, HiMail } from "react-icons/hi";
+import { HiArrowLeft, HiExternalLink } from "react-icons/hi";
 import { FaWhatsapp } from "react-icons/fa";
 import prisma from "@/lib/db";
 import { formatLKR, formatDate, formatDateTime } from "@/lib/utils";
@@ -8,6 +8,7 @@ import { SITE } from "@/lib/constants";
 import InvoiceStatusUpdater from "./InvoiceStatusUpdater";
 import CopyLinkButton from "./CopyLinkButton";
 import RefundButton from "./RefundButton";
+import SendEmailButton from "./SendEmailButton";
 
 const STATUS_BADGE: Record<string, string> = {
   PAID:      "bg-emerald-900/30 text-emerald-400 border-emerald-800",
@@ -46,13 +47,6 @@ export default async function AdminInvoiceDetailPage({ params }: { params: Promi
   const waText = `Hello ${invoice.customer.name}, your invoice ${invoice.id} for ${formatLKR(total)} from STJ Southern Ambulance is ready. Pay securely here: ${invoiceUrl}`;
   const waUrl = `https://wa.me/${waPhone}?text=${encodeURIComponent(waText)}`;
 
-  // Email send link (mailto — opens admin's email client)
-  const emailSubject = `Invoice ${invoice.id} — STJ Southern Ambulance`;
-  const emailBody = `Dear ${invoice.customer.name},\n\nPlease find your invoice details below.\n\nInvoice ID: ${invoice.id}\nAmount Due: ${formatLKR(total)}\n\nPay securely online:\n${invoiceUrl}\n\nIf you have any questions, please call us on ${SITE.phoneDisplay}.\n\nThank you,\nSTJ Southern Ambulance`;
-  const mailtoUrl = invoice.customer.email
-    ? `mailto:${invoice.customer.email}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`
-    : null;
-
   return (
     <div className="p-6 max-w-3xl space-y-5">
       {/* Header */}
@@ -80,13 +74,8 @@ export default async function AdminInvoiceDetailPage({ params }: { params: Promi
         >
           <FaWhatsapp /> Send via WhatsApp
         </a>
-        {mailtoUrl && (
-          <a
-            href={mailtoUrl}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-navy-800 hover:bg-navy-700 text-slate-300 hover:text-white text-xs font-medium transition-colors"
-          >
-            <HiMail /> Send via Email
-          </a>
+        {invoice.customer.email && (
+          <SendEmailButton invoiceId={invoice.id} />
         )}
         <Link
           href={`/invoice/${invoice.id}`}
