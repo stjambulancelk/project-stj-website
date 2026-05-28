@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import prisma from "@/lib/db";
 import { verifyPassword, signToken, SESSION_COOKIE, SESSION_MAX_AGE } from "@/lib/auth";
 import { buildAuditEntry } from "@/lib/audit";
@@ -18,24 +17,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
-    // Update last login
     await prisma.adminUser.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
 
-    // Audit log
     const audit = buildAuditEntry(request, "ADMIN_LOGIN", { actorId: user.id });
     await prisma.auditLog.create({ data: { ...audit } as never }).catch(() => {});
 
     const token = signToken({ userId: user.id, email: user.email, name: user.name, role: user.role });
 
-    const cookieStore = await cookies();
-    cookieStore.set(SESSION_COOKIE, token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: SESSION_MAX_AGE,
-      path: "/",
-    });
-    return NextResponse.json({ ok: true });
+    const isProduction = process.env.NODE_ENV === "production";
+    const cookieStr = [
+      `${SESSION_COOKIE}=${token}`,
+      "Path=/",
+      "HttpOnly",
+      "SameSite=Lax",
+      `Max-Age=${SESSION_MAX_AGE}`,
+      ...(isProduction ? ["Secure"] : []),
+    ].join("; ");
+
+    const response = NextResponse.json({ ok: true });
+    response.headers.set("Set-Cookie", cookieStr);
+    response.headers.set("Cache-Control", "no-store, no-cache, private");
+    return response;
   } catch {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
