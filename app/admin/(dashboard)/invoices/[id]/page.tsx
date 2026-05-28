@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { HiArrowLeft, HiExternalLink } from "react-icons/hi";
+import { HiArrowLeft, HiExternalLink, HiMail } from "react-icons/hi";
+import { FaWhatsapp } from "react-icons/fa";
 import prisma from "@/lib/db";
 import { formatLKR, formatDate, formatDateTime } from "@/lib/utils";
 import { SITE } from "@/lib/constants";
@@ -39,6 +40,19 @@ export default async function AdminInvoiceDetailPage({ params }: { params: Promi
   const invoiceUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? SITE.url}/invoice/${invoice.id}`;
   const successPayment = invoice.payments.find(p => p.status === "SUCCESS");
 
+  // WhatsApp send link
+  const rawPhone = invoice.customer.phone.replace(/\D/g, "");
+  const waPhone = rawPhone.startsWith("0") ? "94" + rawPhone.slice(1) : rawPhone;
+  const waText = `Hello ${invoice.customer.name}, your invoice ${invoice.id} for ${formatLKR(total)} from STJ Southern Ambulance is ready. Pay securely here: ${invoiceUrl}`;
+  const waUrl = `https://wa.me/${waPhone}?text=${encodeURIComponent(waText)}`;
+
+  // Email send link (mailto — opens admin's email client)
+  const emailSubject = `Invoice ${invoice.id} — STJ Southern Ambulance`;
+  const emailBody = `Dear ${invoice.customer.name},\n\nPlease find your invoice details below.\n\nInvoice ID: ${invoice.id}\nAmount Due: ${formatLKR(total)}\n\nPay securely online:\n${invoiceUrl}\n\nIf you have any questions, please call us on ${SITE.phoneDisplay}.\n\nThank you,\nSTJ Southern Ambulance`;
+  const mailtoUrl = invoice.customer.email
+    ? `mailto:${invoice.customer.email}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`
+    : null;
+
   return (
     <div className="p-6 max-w-3xl space-y-5">
       {/* Header */}
@@ -58,6 +72,22 @@ export default async function AdminInvoiceDetailPage({ params }: { params: Promi
       {/* Actions */}
       <div className="flex flex-wrap gap-2">
         <CopyLinkButton url={invoiceUrl} />
+        <a
+          href={waUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#25D366] hover:bg-[#1ebe5d] text-white text-xs font-medium transition-colors"
+        >
+          <FaWhatsapp /> Send via WhatsApp
+        </a>
+        {mailtoUrl && (
+          <a
+            href={mailtoUrl}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-navy-800 hover:bg-navy-700 text-slate-300 hover:text-white text-xs font-medium transition-colors"
+          >
+            <HiMail /> Send via Email
+          </a>
+        )}
         <Link
           href={`/invoice/${invoice.id}`}
           target="_blank"
