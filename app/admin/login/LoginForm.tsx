@@ -1,14 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { HiEye, HiEyeOff } from "react-icons/hi";
 import { SITE } from "@/lib/constants";
 import { loginAction } from "./actions";
 
 export default function LoginForm() {
-  const router = useRouter();
   const [form, setForm] = useState({ email: "", password: "" });
   const [showPw, setShowPw] = useState(false);
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
@@ -19,18 +17,12 @@ export default function LoginForm() {
     setStatus("loading");
     setErrorMsg("");
 
-    try {
-      const result = await loginAction(form.email, form.password);
-      if (result.ok) {
-        router.push("/admin/dashboard");
-      } else {
-        setErrorMsg(result.error ?? "Invalid credentials");
-        setStatus("error");
-      }
-    } catch {
-      setErrorMsg("Network error — check your connection");
+    const result = await loginAction(form.email, form.password).catch(() => null);
+    if (result?.error) {
+      setErrorMsg(result.error);
       setStatus("error");
     }
+    // On success, loginAction calls redirect() internally — Next.js handles navigation
   }
 
   return (
