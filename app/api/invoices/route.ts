@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const { customer, service, charges, expiresInDays } = await request.json();
+    const { customer, service, patient, charges, expiresInDays } = await request.json();
 
     if (!customer?.name || !customer?.phone || !service?.description || !charges?.length) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -75,6 +75,10 @@ export async function POST(request: NextRequest) {
         serviceDate: service.serviceDate ? new Date(service.serviceDate) : null,
         vehicle: service.vehicle || null,
         crewNotes: service.crewNotes || null,
+        patientName: patient?.name || null,
+        patientNic: patient?.nic || null,
+        ward: patient?.ward || null,
+        bedNumber: patient?.bedNumber || null,
         totalAmount,
         status: "PENDING",
         expiresAt,

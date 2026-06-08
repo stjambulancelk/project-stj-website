@@ -114,6 +114,39 @@ export default async function AdminInvoiceDetailPage({ params }: { params: Promi
         </div>
       </div>
 
+      {/* Patient Details */}
+      {(invoice.patientName || invoice.patientNic || invoice.ward || invoice.bedNumber) && (
+        <div className="rounded-2xl bg-navy-900 border border-navy-800 p-5">
+          <h2 className="text-xs text-slate-400 uppercase tracking-wide mb-3">Patient Details</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {invoice.patientName && (
+              <div>
+                <p className="text-[0.65rem] text-slate-500 uppercase tracking-wide mb-0.5">Name</p>
+                <p className="text-white text-xs font-medium">{invoice.patientName}</p>
+              </div>
+            )}
+            {invoice.patientNic && (
+              <div>
+                <p className="text-[0.65rem] text-slate-500 uppercase tracking-wide mb-0.5">NIC</p>
+                <p className="text-white text-xs font-medium">{invoice.patientNic}</p>
+              </div>
+            )}
+            {invoice.ward && (
+              <div>
+                <p className="text-[0.65rem] text-slate-500 uppercase tracking-wide mb-0.5">Ward</p>
+                <p className="text-white text-xs font-medium">{invoice.ward}</p>
+              </div>
+            )}
+            {invoice.bedNumber && (
+              <div>
+                <p className="text-[0.65rem] text-slate-500 uppercase tracking-wide mb-0.5">Bed No.</p>
+                <p className="text-white text-xs font-medium">{invoice.bedNumber}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Charges */}
       <div className="rounded-2xl bg-navy-900 border border-navy-800 overflow-hidden">
         <h2 className="text-xs text-slate-400 uppercase tracking-wide px-5 py-3 border-b border-navy-800">Charges</h2>

@@ -87,6 +87,39 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
             </div>
           </div>
 
+          {/* Patient Details */}
+          {(invoice.patientName || invoice.patientNic || invoice.ward || invoice.bedNumber) && (
+            <div className="mb-6 pb-6 border-b border-slate-200 dark:border-navy-700">
+              <p className="text-xs text-slate-400 mb-2 font-medium uppercase tracking-wide">Patient Details</p>
+              <div className="grid grid-cols-2 gap-x-6 gap-y-1">
+                {invoice.patientName && (
+                  <div>
+                    <p className="text-[0.65rem] text-slate-400 uppercase tracking-wide">Patient Name</p>
+                    <p className="text-xs text-navy-950 dark:text-slate-200 font-medium">{invoice.patientName}</p>
+                  </div>
+                )}
+                {invoice.patientNic && (
+                  <div>
+                    <p className="text-[0.65rem] text-slate-400 uppercase tracking-wide">NIC</p>
+                    <p className="text-xs text-navy-950 dark:text-slate-200 font-medium">{invoice.patientNic}</p>
+                  </div>
+                )}
+                {invoice.ward && (
+                  <div className="mt-1">
+                    <p className="text-[0.65rem] text-slate-400 uppercase tracking-wide">Ward</p>
+                    <p className="text-xs text-navy-950 dark:text-slate-200 font-medium">{invoice.ward}</p>
+                  </div>
+                )}
+                {invoice.bedNumber && (
+                  <div className="mt-1">
+                    <p className="text-[0.65rem] text-slate-400 uppercase tracking-wide">Bed No.</p>
+                    <p className="text-xs text-navy-950 dark:text-slate-200 font-medium">{invoice.bedNumber}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Service info */}
           <div className="mb-6 pb-6 border-b border-slate-200 dark:border-navy-700">
             <p className="text-xs text-slate-400 mb-1 font-medium uppercase tracking-wide">Service</p>
