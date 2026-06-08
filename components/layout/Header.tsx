@@ -73,7 +73,7 @@ export default function Header() {
     <>
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled
+          scrolled || !darkMode
             ? "glass shadow-glass py-2"
             : "bg-transparent py-4"
         }`}
@@ -88,9 +88,11 @@ export default function Header() {
                 width={44}
                 height={44}
                 priority
-                className="h-10 w-10 md:h-11 md:w-11 flex-shrink-0"
+                className={`h-10 w-10 md:h-11 md:w-11 flex-shrink-0 transition-all duration-300 ${
+                  !darkMode ? "drop-shadow-[0_1px_3px_rgba(0,0,0,0.25)]" : ""
+                }`}
               />
-              <div className={`hidden sm:flex flex-col leading-none ${scrolled ? "text-navy-950 dark:text-white" : "text-white"}`}>
+              <div className={`hidden sm:flex flex-col leading-none ${scrolled || !darkMode ? "text-navy-950 dark:text-white" : "text-white"}`}>
                 <span className="font-black text-[15px] tracking-wider">STJ</span>
                 <span className="text-[9px] font-semibold tracking-[0.15em] uppercase opacity-80">Southern Ambulance</span>
               </div>
@@ -103,7 +105,7 @@ export default function Header() {
                   key={link.name}
                   href={link.href}
                   className={`text-sm font-medium whitespace-nowrap transition-colors duration-200 ${
-                    scrolled
+                    scrolled || !darkMode
                       ? "text-navy-950 dark:text-white hover:text-emerald-600 dark:hover:text-emerald-400"
                       : "text-white hover:text-emerald-300"
                   }`}
@@ -120,7 +122,7 @@ export default function Header() {
                 onClick={toggleDark}
                 aria-label="Toggle dark mode"
                 className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
-                  scrolled
+                  scrolled || !darkMode
                     ? "bg-surface-container dark:bg-navy-800 text-navy-950 dark:text-white"
                     : "bg-white/10 text-white hover:bg-white/20"
                 }`}
@@ -162,7 +164,7 @@ export default function Header() {
               onClick={() => setMobileOpen((v) => !v)}
               aria-label="Toggle menu"
               className={`lg:hidden w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
-                scrolled
+                scrolled || !darkMode
                   ? "bg-surface-container dark:bg-navy-800 text-navy-950 dark:text-white"
                   : "bg-white/10 text-white"
               }`}

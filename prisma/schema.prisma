@@ -38,6 +38,11 @@ model Invoice {
   vehicle     String?
   crewNotes   String?
 
+  patientName String?
+  patientNic  String?
+  ward        String?
+  bedNumber   String?
+
   charges     InvoiceCharge[]
   totalAmount Decimal       @db.Decimal(10, 2)
 
