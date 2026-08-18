@@ -92,6 +92,11 @@ export default function TermsPage() {
                 <strong>Failed payments:</strong> If a payment fails after submission, your booking will be
                 held for up to 24 hours. Our team will contact you to arrange alternative payment.
               </li>
+              <li>
+                <strong>Refund method:</strong> All approved refunds will be credited back to the original
+                payment method used at the time of payment (i.e., the same card, bank account, or mobile
+                wallet), processed via PayHere.
+              </li>
             </ul>
             <p className="mt-3">
               To request a refund or cancellation, contact us at{" "}
