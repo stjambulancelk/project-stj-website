@@ -23,7 +23,7 @@ export default function TermsPage() {
             <h2 className="text-headline-md text-navy-950 dark:text-white mb-3">1. Acceptance of Terms</h2>
             <p>
               By accessing our website at{" "}
-              <a href={SITE.url} className="text-emerald-600 dark:text-emerald-400 hover:underline">stj.lk</a>{" "}
+              <a href="https://stj.lk" className="text-emerald-600 dark:text-emerald-400 hover:underline">stj.lk</a>{" "}
               or using any services provided by STJ Southern Ambulance, you agree to be bound by these Terms of
               Service. If you do not agree, please do not use our services.
             </p>
