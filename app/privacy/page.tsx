@@ -25,7 +25,7 @@ export default function PrivacyPage() {
               STJ Southern Ambulance (&ldquo;we,&rdquo; &ldquo;our,&rdquo; or &ldquo;us&rdquo;), operating at{" "}
               {SITE.address}, is committed to protecting your privacy. This Privacy Policy explains how we
               collect, use, and safeguard information when you use our website at{" "}
-              <a href={SITE.url} className="text-emerald-600 dark:text-emerald-400 hover:underline">stj.lk</a>{" "}
+              <a href="https://stj.lk" className="text-emerald-600 dark:text-emerald-400 hover:underline">stj.lk</a>{" "}
               or engage our services.
             </p>
           </section>
