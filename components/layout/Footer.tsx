@@ -148,6 +148,21 @@ export default function Footer() {
                 <span className="text-slate-500 text-xs">({SITE.googleReviewCount} reviews)</span>
               </div>
             </div>
+
+            {/* Official PayHere banner — shows accepted payment options */}
+            <div className="mt-6">
+              <p className="text-xs text-slate-500 mb-2">Secure Online Payments</p>
+              <a href="https://www.payhere.lk" target="_blank" rel="noopener noreferrer" aria-label="Payments secured by PayHere">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="https://www.payhere.lk/downloads/images/payhere_square_banner_dark.png"
+                  alt="PayHere — accepted payment methods"
+                  width={150}
+                  loading="lazy"
+                  className="rounded-lg"
+                />
+              </a>
+            </div>
           </div>
         </div>
       </div>
