@@ -20,7 +20,15 @@ export type AuditAction =
   | "FILE_UPLOADED"
   | "USER_CREATED"
   | "USER_UPDATED"
-  | "PAYMENT_REFUNDED";
+  | "PAYMENT_REFUNDED"
+  | "PAYMENT_RECORDED"
+  | "CUSTOMER_DELETED"
+  | "PATIENT_CREATED"
+  | "PATIENT_UPDATED"
+  | "PATIENT_DELETED"
+  | "LOCATION_CREATED"
+  | "LOCATION_UPDATED"
+  | "LOCATION_DELETED";
 
 export interface AuditEntry {
   action: AuditAction;
@@ -66,4 +74,17 @@ export function buildAuditEntry(
     userAgentHash: hashUserAgent(ua),
     ...extras,
   };
+}
+
+/** Fire-and-forget audit write — never blocks or fails the request. */
+export async function logAudit(
+  request: Request,
+  action: AuditAction,
+  extras?: Partial<Omit<AuditEntry, "action" | "hashedIp" | "userAgentHash">> & { invoiceId?: string }
+): Promise<void> {
+  const { prisma } = await import("./db");
+  const { invoiceId, ...rest } = extras ?? {};
+  await prisma.auditLog
+    .create({ data: { ...buildAuditEntry(request, action, rest), ...(invoiceId ? { invoiceId } : {}) } as never })
+    .catch(() => {});
 }

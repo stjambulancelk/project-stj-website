@@ -22,7 +22,8 @@ const securityHeaders = [
         : "script-src 'self' 'unsafe-inline'",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
-      "img-src 'self' data: blob: https://maps.googleapis.com https://maps.gstatic.com",
+      // www.payhere.lk: official PayHere payment-options banner in the footer
+      "img-src 'self' data: blob: https://maps.googleapis.com https://maps.gstatic.com https://www.payhere.lk",
       "frame-src https://www.google.com https://sandbox.payhere.lk https://www.payhere.lk",
       "connect-src 'self' https://sandbox.payhere.lk https://payhere.lk",
       "form-action 'self' https://sandbox.payhere.lk https://www.payhere.lk",

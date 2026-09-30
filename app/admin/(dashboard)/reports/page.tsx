@@ -2,6 +2,8 @@ import { HiCurrencyDollar, HiDocumentText, HiCheckCircle, HiXCircle } from "reac
 import prisma from "@/lib/db";
 import { formatLKR } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 async function getReportData() {
   const [
     totalRevenue,
@@ -11,7 +13,7 @@ async function getReportData() {
     cancelledCount,
     monthlyPayments,
   ] = await Promise.all([
-    prisma.payment.aggregate({ where: { status: "SUCCESS" }, _sum: { amount: true }, _count: true }),
+    prisma.payment.aggregate({ where: { status: { in: ["SUCCESS", "REFUNDED"] } }, _sum: { amount: true, refundedAmount: true }, _count: true }),
     prisma.invoice.count({ where: { status: "PAID" } }),
     prisma.invoice.aggregate({ where: { status: { in: ["PENDING", "SENT"] } }, _sum: { totalAmount: true }, _count: true }),
     prisma.invoice.count({ where: { status: "FAILED" } }),
@@ -28,7 +30,7 @@ async function getReportData() {
 
 export default async function ReportsPage() {
   const { totalRevenue, paidCount, pendingAgg, failedCount, cancelledCount, monthlyPayments } = await getReportData();
-  const revenue = Number(totalRevenue._sum.amount ?? 0);
+  const revenue = Number(totalRevenue._sum.amount ?? 0) - Number(totalRevenue._sum.refundedAmount ?? 0); // net of refunds
   const outstanding = Number(pendingAgg._sum.totalAmount ?? 0);
 
   const stats = [
@@ -39,7 +41,7 @@ export default async function ReportsPage() {
   ];
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-headline-sm text-white font-bold">Reports</h1>
         <p className="text-slate-500 text-xs">All-time figures</p>

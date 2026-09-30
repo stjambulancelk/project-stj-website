@@ -265,3 +265,16 @@ button:focus-visible {
   border-color: var(--emerald);
   color: var(--emerald);
 }
+
+/* Admin on phones: 16px form text stops iOS Safari auto-zooming on focus */
+@media (max-width: 639px) {
+  .admin-shell input:not([type="checkbox"]):not([type="radio"]),
+  .admin-shell select,
+  .admin-shell textarea {
+    font-size: 16px;
+  }
+}
+
+/* Horizontal chip rows: swipeable without a visible scrollbar */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }

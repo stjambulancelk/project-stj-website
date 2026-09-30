@@ -19,7 +19,7 @@ export default async function CmsPage() {
   const saved = await getSections();
 
   return (
-    <div className="p-6 space-y-6 max-w-2xl">
+    <div className="p-4 sm:p-6 space-y-6 max-w-2xl">
       <div>
         <h1 className="text-headline-sm text-white font-bold">Content Management</h1>
         <p className="text-slate-400 text-xs mt-1">Edit public-facing text sections. Changes go live immediately.</p>

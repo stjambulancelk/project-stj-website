@@ -44,7 +44,7 @@ export default function NewsForm({ post }: Props) {
   }
 
   return (
-    <div className="p-6 max-w-3xl space-y-6">
+    <div className="p-4 sm:p-6 max-w-3xl space-y-6">
       <h1 className="text-headline-sm text-white font-bold">
         {isEdit ? "Edit Post" : "New Post"}
       </h1>
