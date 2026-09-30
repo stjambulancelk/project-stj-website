@@ -1,20 +1,49 @@
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import prisma from "@/lib/db";
-import { SITE } from "@/lib/constants";
+import { SITE, PAYHERE } from "@/lib/constants";
 import { buildPayHerePayload } from "@/lib/payhere";
+import { computeTotals, PAYABLE_STATUSES, isProcessingAtPayHere } from "@/lib/billing";
 import { formatLKR } from "@/lib/utils";
 import PayHereForm from "./PayHereForm";
+
+export const dynamic = "force-dynamic";
 
 async function getPayableInvoice(id: string) {
   const invoice = await prisma.invoice.findUnique({
     where: { id },
-    include: { customer: true },
+    include: { customer: true, payments: true },
   });
   if (!invoice) return null;
-  const payable = invoice.status === "PENDING" || invoice.status === "SENT" || invoice.status === "FAILED";
   const expired = invoice.expiresAt && new Date() > invoice.expiresAt;
-  if (!payable || expired) return null;
+  if (!PAYABLE_STATUSES.includes(invoice.status) || expired) return null;
+  // PayHere still processing a previous payment — don't allow a second charge
+  if (isProcessingAtPayHere(invoice.payments)) return null;
   return invoice;
+}
+
+/**
+ * One Payment row per PayHere attempt, order_id = "<invoiceId>-<n>".
+ * Reuse the latest PENDING attempt for the same amount (page refresh / back button)
+ * so we don't litter rows; the PayHere hash is deterministic for (order_id, amount).
+ */
+async function getCheckoutAttempt(invoiceId: string, amount: number) {
+  const pending = await prisma.payment.findFirst({
+    where: { invoiceId, status: "PENDING", source: "PAYHERE", payhereOrderId: { startsWith: `${invoiceId}-` } },
+    orderBy: { initiatedAt: "desc" },
+  });
+  if (pending && Number(pending.amount) === amount) return pending;
+
+  const attempts = await prisma.payment.count({ where: { invoiceId } });
+  for (let n = attempts + 1; n < attempts + 5; n++) {
+    try {
+      return await prisma.payment.create({
+        data: { invoiceId, payhereOrderId: `${invoiceId}-${n}`, amount, status: "PENDING", source: "PAYHERE" },
+      });
+    } catch {
+      // order id taken by a concurrent request — try next number
+    }
+  }
+  throw new Error("Could not allocate checkout attempt");
 }
 
 export default async function CheckoutPage({ params }: { params: Promise<{ id: string }> }) {
@@ -22,9 +51,14 @@ export default async function CheckoutPage({ params }: { params: Promise<{ id: s
   const invoice = await getPayableInvoice(id);
   if (!invoice) redirect(`/invoice/${id}`);
 
-  const total = Number(invoice.totalAmount);
+  // Charge the outstanding balance (supports part-paid invoices, e.g. cash deposit + online remainder)
+  const total = computeTotals(invoice.totalAmount, invoice.payments).balance;
+  if (total <= 0) redirect(`/invoice/${id}`);
+
+  const attempt = await getCheckoutAttempt(invoice.id, total);
   const payload = buildPayHerePayload({
     invoiceId: invoice.id,
+    orderId: attempt.payhereOrderId!,
     amount: total,
     description: invoice.description,
     customerName: invoice.customer.name,
@@ -56,7 +90,7 @@ export default async function CheckoutPage({ params }: { params: Promise<{ id: s
           </p>
 
           {/* Auto-submit client component */}
-          <PayHereForm payload={payload} />
+          <PayHereForm payload={payload} action={PAYHERE.baseUrl} />
         </div>
 
         <p className="text-xs text-slate-400 dark:text-slate-500">

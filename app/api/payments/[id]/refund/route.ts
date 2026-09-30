@@ -1,98 +1,118 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import prisma from "@/lib/db";
-import { verifyToken, SESSION_COOKIE } from "@/lib/auth";
+import type { PaymentSource } from "@prisma/client";
+import prisma, { TX_OPTIONS } from "@/lib/db";
+import { requireAdmin, WRITE_ROLES } from "@/lib/session";
 import { getPayHerePaymentByOrderId, refundPayHerePayment } from "@/lib/payhere-api";
 import { sendRefundEmail } from "@/lib/mail";
+import { logAudit } from "@/lib/audit";
+import { syncInvoiceStatus } from "@/lib/billing";
+import { str } from "@/lib/registry";
 
-async function getSession() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE)?.value;
-  return token ? verifyToken(token) : null;
-}
+const MANUAL_METHODS: PaymentSource[] = ["CASH", "BANK_TRANSFER", "CHEQUE", "OTHER"];
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const session = await getSession();
-  if (!session || session.role === "VIEWER") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+/**
+ * POST /api/payments/:id/refund  { amount?, reason, method? }
+ *
+ * - PayHere payment, full remaining amount, no method → PayHere Refund API
+ *   (PayHere's API refunds the whole payment only).
+ * - Anything else (partial, or cash/bank payment) → recorded as a manual refund;
+ *   `method` says how the money was returned.
+ */
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireAdmin(WRITE_ROLES);
+  if (auth instanceof NextResponse) return auth;
 
   const { id: paymentId } = await params;
   const body = await request.json().catch(() => ({}));
-  const reason: string = body.reason?.trim() || "Refund requested by admin";
+  const reason = str(body.reason, 500) || "Refund requested by admin";
 
-  // Load payment + invoice + customer
   const payment = await prisma.payment.findUnique({
     where: { id: paymentId },
     include: { invoice: { include: { customer: true } } },
   });
-
   if (!payment) return NextResponse.json({ error: "Payment not found" }, { status: 404 });
   if (payment.status !== "SUCCESS") {
     return NextResponse.json({ error: "Only successful payments can be refunded" }, { status: 400 });
   }
-  if (payment.invoice.status === "REFUNDED") {
-    return NextResponse.json({ error: "Invoice already refunded" }, { status: 400 });
+
+  const remaining = Math.round((Number(payment.amount) - Number(payment.refundedAmount)) * 100) / 100;
+  const amount = body.amount === undefined || body.amount === ""
+    ? remaining
+    : Math.round(parseFloat(String(body.amount)) * 100) / 100;
+  if (!Number.isFinite(amount) || amount <= 0 || amount > remaining) {
+    return NextResponse.json({ error: `Refund amount must be between 0 and ${remaining.toFixed(2)}` }, { status: 400 });
   }
 
-  // Resolve PayHere payment_id — saved from webhook, or fall back to Retrieval API
-  let payherePaymentId = payment.payherePaymentId;
-  if (!payherePaymentId) {
-    const found = await getPayHerePaymentByOrderId(payment.invoice.id).catch(() => null);
-    payherePaymentId = found?.id ?? null;
+  const manualMethod = MANUAL_METHODS.includes(body.method) ? (body.method as PaymentSource) : null;
+  const viaPayHere = payment.source === "PAYHERE" && !manualMethod;
+
+  let reference: string | null = str(body.reference, 100) ?? null;
+
+  if (viaPayHere) {
+    if (amount !== remaining || Number(payment.refundedAmount) > 0) {
+      return NextResponse.json(
+        { error: "PayHere refunds the full payment only. For a partial refund choose Cash / Bank transfer and return the money manually." },
+        { status: 400 }
+      );
+    }
+    let payherePaymentId = payment.payherePaymentId;
+    if (!payherePaymentId) {
+      const found = await getPayHerePaymentByOrderId(payment.payhereOrderId ?? payment.invoiceId).catch(() => null);
+      payherePaymentId = found?.id ?? null;
+    }
+    if (!payherePaymentId) {
+      return NextResponse.json(
+        { error: "Cannot find PayHere payment ID. Refund in the PayHere portal, then record it here as a manual refund." },
+        { status: 422 }
+      );
+    }
+    const result = await refundPayHerePayment(payherePaymentId, reason);
+    if (!result.ok) {
+      return NextResponse.json({ error: result.message ?? "PayHere refund failed" }, { status: 502 });
+    }
+    reference = payherePaymentId;
+  } else if (!manualMethod) {
+    return NextResponse.json({ error: "Choose how the money was returned" }, { status: 400 });
   }
 
-  if (!payherePaymentId) {
-    return NextResponse.json(
-      { error: "Cannot find PayHere payment ID. Log into PayHere portal to refund manually." },
-      { status: 422 }
-    );
-  }
-
-  // Call PayHere Refund API
-  const result = await refundPayHerePayment(payherePaymentId, reason);
-  if (!result.ok) {
-    return NextResponse.json({ error: result.message ?? "PayHere refund failed" }, { status: 502 });
-  }
-
-  // Update DB
-  await prisma.$transaction([
-    prisma.payment.update({
-      where: { id: paymentId },
-      data: { status: "REFUNDED" },
-    }),
-    prisma.invoice.update({
-      where: { id: payment.invoiceId },
-      data: { status: "REFUNDED" },
-    }),
-    prisma.auditLog.create({
+  const newRefunded = Math.round((Number(payment.refundedAmount) + amount) * 100) / 100;
+  const sync = await prisma.$transaction(async (tx) => {
+    await tx.refund.create({
       data: {
-        action: "PAYMENT_REFUNDED",
-        entityType: "Invoice",
-        entityId: payment.invoiceId,
+        paymentId,
         invoiceId: payment.invoiceId,
-        actorId: session.userId,
-        hashedIp: request.headers.get("x-hashed-ip") ?? "admin",
-        userAgentHash: "admin",
-        metadata: { paymentId, payherePaymentId, reason },
-      } as never,
-    }),
-  ]);
+        amount,
+        reason,
+        method: viaPayHere ? "PAYHERE" : manualMethod!,
+        reference,
+        createdBy: auth.userId,
+      },
+    });
+    await tx.payment.update({
+      where: { id: paymentId },
+      data: {
+        refundedAmount: newRefunded,
+        ...(newRefunded >= Number(payment.amount) ? { status: "REFUNDED" } : {}),
+      },
+    });
+    return syncInvoiceStatus(tx, payment.invoiceId);
+  }, TX_OPTIONS);
 
-  // Email customer
+  await logAudit(request, "PAYMENT_REFUNDED", {
+    actorId: auth.userId, entityType: "Invoice", entityId: payment.invoiceId, invoiceId: payment.invoiceId,
+    metadata: { paymentId, amount, reason, method: viaPayHere ? "PAYHERE" : manualMethod, reference },
+  });
+
   const customer = payment.invoice.customer;
   if (customer.email) {
     await sendRefundEmail({
       to: customer.email,
       customerName: customer.name,
       invoiceId: payment.invoiceId,
-      amount: Number(payment.amount),
+      amount,
       reason,
     }).catch(() => {});
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, status: sync?.status });
 }

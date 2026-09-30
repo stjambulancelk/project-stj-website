@@ -27,7 +27,10 @@ export const PAYHERE = {
   appId: process.env.PAYHERE_APP_ID ?? "",
   appSecret: process.env.PAYHERE_APP_SECRET ?? "",
   isSandbox: _sandbox,
-  baseUrl: process.env.PAYHERE_BASE_URL ?? "https://sandbox.payhere.lk/pay/checkout",
+  // Server-only. Client components must receive this as a prop (non-NEXT_PUBLIC env is undefined in the browser).
+  baseUrl:
+    process.env.PAYHERE_BASE_URL ??
+    (_sandbox ? "https://sandbox.payhere.lk/pay/checkout" : "https://www.payhere.lk/pay/checkout"),
   apiBase: _sandbox
     ? "https://sandbox.payhere.lk/merchant/v1"
     : "https://payhere.lk/merchant/v1",

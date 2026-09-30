@@ -38,6 +38,7 @@ export function generatePayHereHash(
 
 export function buildPayHerePayload(params: {
   invoiceId: string;
+  orderId: string; // unique per checkout attempt, e.g. "<invoiceId>-2"
   amount: number;
   description: string;
   customerName: string;
@@ -45,7 +46,7 @@ export function buildPayHerePayload(params: {
   customerPhone: string;
   siteUrl: string;
 }): PayHerePayload {
-  const { invoiceId, amount, description, customerName, customerEmail, customerPhone, siteUrl } = params;
+  const { invoiceId, orderId, amount, description, customerName, customerEmail, customerPhone, siteUrl } = params;
   const [firstName, ...rest] = customerName.trim().split(" ");
   const lastName = rest.join(" ") || "-";
   const currency = PAYHERE.currency;
@@ -55,7 +56,7 @@ export function buildPayHerePayload(params: {
     return_url: `${siteUrl}/invoice/${invoiceId}/success`,
     cancel_url: `${siteUrl}/invoice/${invoiceId}/failed`,
     notify_url: `${siteUrl}/api/payments/webhook`,
-    order_id: invoiceId,
+    order_id: orderId,
     items: description,
     currency,
     amount: amount.toFixed(2),
@@ -66,7 +67,7 @@ export function buildPayHerePayload(params: {
     address: "Sri Lanka",
     city: "Galle",
     country: "Sri Lanka",
-    hash: generatePayHereHash(invoiceId, amount, currency),
+    hash: generatePayHereHash(orderId, amount, currency),
   };
 }
 

@@ -3,6 +3,8 @@ import { HiDocumentText, HiCurrencyDollar, HiClock, HiUsers, HiPlus, HiCheckCirc
 import prisma from "@/lib/db";
 import { formatLKR, formatDate } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 async function getDashboardData() {
   const [
     paidRevenue,
@@ -12,7 +14,7 @@ async function getDashboardData() {
     recentPayments,
     totalCustomers,
   ] = await Promise.all([
-    prisma.payment.aggregate({ where: { status: "SUCCESS" }, _sum: { amount: true } }),
+    prisma.payment.aggregate({ where: { status: { in: ["SUCCESS", "REFUNDED"] } }, _sum: { amount: true, refundedAmount: true } }),
     prisma.invoice.aggregate({ where: { status: { in: ["PENDING", "SENT"] } }, _sum: { totalAmount: true }, _count: true }),
     prisma.invoice.groupBy({ by: ["status"], _count: true }),
     prisma.invoice.findMany({
@@ -34,6 +36,8 @@ async function getDashboardData() {
 
 const STATUS_BADGE: Record<string, string> = {
   PAID:      "bg-emerald-900/30 text-emerald-400 border-emerald-800",
+  PARTIALLY_PAID:     "bg-teal-900/30 text-teal-300 border-teal-800",
+  PARTIALLY_REFUNDED: "bg-orange-900/30 text-orange-300 border-orange-800",
   PENDING:   "bg-amber-900/30 text-amber-400 border-amber-800",
   SENT:      "bg-blue-900/30 text-blue-400 border-blue-800",
   FAILED:    "bg-red-900/30 text-red-400 border-red-800",
@@ -45,7 +49,7 @@ export default async function DashboardPage() {
   const { paidRevenue, outstandingAgg, recentInvoices, recentPayments, totalCustomers } =
     await getDashboardData();
 
-  const revenue = Number(paidRevenue._sum.amount ?? 0);
+  const revenue = Number(paidRevenue._sum.amount ?? 0) - Number(paidRevenue._sum.refundedAmount ?? 0); // net of refunds
   const outstanding = Number(outstandingAgg._sum.totalAmount ?? 0);
   const outstandingCount = outstandingAgg._count;
 
@@ -57,7 +61,7 @@ export default async function DashboardPage() {
   ];
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

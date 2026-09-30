@@ -14,3 +14,9 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 export default prisma;
+
+/**
+ * Options for interactive transactions. Prisma's default 5s timeout is too tight for
+ * multi-step writes (registry resolve + invoice + charges) over a slow DB link.
+ */
+export const TX_OPTIONS = { maxWait: 10_000, timeout: 20_000 } as const;

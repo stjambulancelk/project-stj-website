@@ -19,7 +19,7 @@ export default async function LogsPage({
   const logs = await getLogs(parseInt(page ?? "0"));
 
   return (
-    <div className="p-6 space-y-5">
+    <div className="p-4 sm:p-6 space-y-5">
       <div>
         <h1 className="text-headline-sm text-white font-bold">Audit Logs</h1>
         <p className="text-slate-400 text-xs mt-1">IP addresses stored as SHA-256 hashes — PDPA compliant. Retained 90 days.</p>

@@ -7,7 +7,7 @@ import { useState } from "react";
 import {
   HiHome, HiDocumentText, HiUsers, HiPencil, HiChartBar,
   HiClipboardList, HiUserGroup, HiLogout, HiMenu, HiX,
-  HiNewspaper, HiPlus,
+  HiNewspaper, HiPlus, HiIdentification, HiLocationMarker,
 } from "react-icons/hi";
 import { FaAmbulance } from "react-icons/fa";
 import { SITE } from "@/lib/constants";
@@ -17,6 +17,8 @@ const NAV = [
   { href: "/admin/invoices", icon: HiDocumentText, label: "Invoices" },
   { href: "/admin/invoices/new", icon: HiPlus, label: "New Invoice" },
   { href: "/admin/customers", icon: HiUsers, label: "Customers" },
+  { href: "/admin/patients", icon: HiIdentification, label: "Patients" },
+  { href: "/admin/locations", icon: HiLocationMarker, label: "Locations" },
   { href: "/admin/cms", icon: HiPencil, label: "CMS" },
   { href: "/admin/news", icon: HiNewspaper, label: "News Posts" },
   { href: "/admin/reports", icon: HiChartBar, label: "Reports" },
