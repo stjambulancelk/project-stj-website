@@ -176,6 +176,23 @@ export default function Footer() {
             <Link href="/terms" className="hover:text-slate-300 transition-colors">Terms of Service</Link>
           </div>
         </div>
+
+        {/* Developer credit */}
+        <div className="container-main pb-5 -mt-1 text-xs text-slate-500 text-center sm:text-right leading-relaxed">
+          © {new Date().getFullYear()} · Designed, developed and powered by{" "}
+          <a
+            href="https://cdazzdev.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-amber-400 hover:text-amber-300 transition-colors"
+          >
+            Ceylon Dazzling Dev Holding (Pvt) Ltd.
+          </a>
+          <span className="mx-2" aria-hidden="true">·</span>
+          <a href="mailto:info@cdazzdev.com" className="hover:text-slate-300 transition-colors whitespace-nowrap">
+            info@cdazzdev.com
+          </a>
+        </div>
       </div>
     </footer>
   );
