@@ -74,16 +74,20 @@ export async function POST(request: NextRequest) {
       return null;
     }, TX_OPTIONS);
 
+    // Payment + invoice status are committed above. Email and audit are follow-ups:
+    // run them in the background so PayHere gets its 200 immediately — a slow SMTP
+    // server must never hold up the gateway. (Railway runs a long-lived Node server,
+    // so these promises finish after the response is sent.)
     if (isSuccess && invoice.customer.email) {
-      await sendPaymentConfirmationEmail({
+      void sendPaymentConfirmationEmail({
         to: invoice.customer.email,
         customerName: invoice.customer.name,
         invoiceId,
         amount,
-      }).catch(() => {});
+      }).catch((e) => console.error("PayHere webhook: confirmation email failed:", e));
     }
 
-    await prisma.auditLog.create({
+    void prisma.auditLog.create({
       data: {
         action: isSuccess ? "PAYMENT_SUCCESS" : isFailed ? "PAYMENT_FAILED" : "PAYMENT_WEBHOOK",
         entityType: "Invoice",
@@ -93,7 +97,7 @@ export async function POST(request: NextRequest) {
         userAgentHash: "payhere",
         metadata: { statusCode, amount: payHereAmount, orderId, payherePaymentId, invoiceStatus: result?.status ?? null },
       } as never,
-    }).catch(() => {});
+    }).catch((e) => console.error("PayHere webhook: audit log failed:", e));
 
     return new NextResponse("OK", { status: 200 });
   } catch (err) {
